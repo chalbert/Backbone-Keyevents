@@ -9,6 +9,8 @@ define([
   _.extend(Backbone.View.prototype, {
 
     delegateEvents: function(events){
+      if (!(events || (events = this.events))) return;
+
       _.each(events, function(method, eventConfig){
 
         var eventParts = eventConfig.split(' '),
@@ -16,21 +18,20 @@ define([
             selector = eventParts[1] || '';
 
         if (_isSpecificKeyEvent(event)) {
-          this._bindSpecificKeyEvent(this, selector, event);
+          this._bindSpecificKeyEvent(selector, event, method);
           delete events[eventConfig];
         }
 
       }, this);
       delegateEvents.call(this, events);
     },
-    bindSpecificKeyEvent: function(selector, event) {
+    _bindSpecificKeyEvent: function(selector, event, method) {
       var eventParts = _getEventParts(event),
           data = {
             key: _.getKeycode(eventParts.key),
-            keyName: eventParts.key,
-            el: selector
+            method: method
           },
-          router = _keyEventRouter;
+          router = $.proxy(_keyEventRouter, this);
 
       if (selector === '') {
         this.$el.bind(eventParts.event, data, router);
@@ -47,7 +48,7 @@ define([
   function _isSpecificKeyEvent(event){
     if (!_isEventWithOption(event)) return false;
 
-    var eventParts = this._getEventParts(event);
+    var eventParts = _getEventParts(event);
     return _.isKeyEvent(eventParts.event) && _.isKey(eventParts.key);
   }
 
@@ -69,8 +70,7 @@ define([
 
   function _keyEventRouter(e) {
     if (e.data.key === e.which) {
-      var method = _getEventMethod(e.data.el, e.type, e.data.keyName);
-      this[method].apply(this);
+      this[e.data.method].apply(this);
     }
   }
 
