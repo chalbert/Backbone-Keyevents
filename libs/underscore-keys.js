@@ -1,5 +1,5 @@
 
-define(['libs/vendor/underscore/underscore'], function(_){
+define(['underscore'], function(_){
 
   var keyEvents = ['keypress', 'keydown', 'keyup'];
   var keyMap = {
